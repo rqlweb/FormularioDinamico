@@ -17,7 +17,7 @@
             <input class="radio-civil" type="radio" id="single" name="civilstatus" value="Soltero">
             <label for="single">Soltero</label>
         </div>
-        <div class="married d-none">
+        <div class="married d-none" id="respuesta">
             <div>
                 <p>Regimen de matrimonio a fecha de fallecimiento</p>
                 <input type="radio" id="communityP" name="married" value="Gananciales">
