@@ -11,38 +11,31 @@
 
 require 'helpers/Helpers.php';
 
-$helpers=Helpers::get();
-
-
-
-
 $formulario_a = '{
     "dni":"1234567-1",
     "fecha_fallecimiento":"17-03-2014",
     "nombre_apellido":"Pedro Perez",
     "estado_civil":"casado",
-    "regimen":"",
+    "regimen":"ganacial",
     "domicilio":"pontevedra calle 18",
     "negocio":"si",
-    "tipo_autonomo":"autonomo individual"
+    "tipo_autonomo":"autonomo con sociedad"
 }';
 
-$status=Helpers::Civil_status($formulario_a);
-
-echo $status."<br />";
-
-// DECODING OBJECTO TO PHP
-$formulario_a_dcd = json_decode($formulario_a, true);
-
-//$status = $formulario_a_dcd["estado_civil"];
-
-$option =$formulario_a_dcd["negocio"];
-
-$self_employed = $formulario_a_dcd["tipo_autonomo"];
-
-//Civil_status($status)."<br />";
-
-Have_business($option,$self_employed)."<br />";
+//Comprobaciones para el primera seccion del formulario 
+if(!empty($formulario_a)){
+    
+        // DECODING OBJECTO TO PHP
+        if($formulario_a_dcd = json_decode($formulario_a,true)){
+               //var_dump($formulario_a_dcd);    
+               echo Helpers::Civil_status($formulario_a_dcd);
+               
+               echo Helpers::Have_business($formulario_a_dcd);
+        }
+        else{
+            echo 'el objeto de la seccion A esta vacio o nulo';
+        }   
+}
 
 $formulario_a_and_b = '[
     {
@@ -60,203 +53,88 @@ $formulario_a_and_b = '[
       "step_b":{
        "dni":"1234567-1",
        "nombre_heredero":"Elonk Musk",
-       "parentesco_fallecido":"Hermano",
+       "parentesco_fallecido":"Hijo",
        "patrimonio":400000
        }
     }]';
 
-$formulario_b_dcd = json_decode($formulario_a_and_b, true);
-
-$parentesco= $formulario_b_dcd[1]["step_b"]["parentesco_fallecido"];
-
-$patrimonio= $formulario_b_dcd[1]["step_b"]["patrimonio"];
-
-Deceased_kinship ( $parentesco )."<br />";
-
-echo Patrimonial_value ( $patrimonio )."<br />";
-
-Property('piso','Bien Ganancial')."<br />";
-
-// SECCION A) DATOS PERSONALES DEL FALLECIDO:
-function Civil_status ( $status )
-{
-    //Variables globales
-    $spouse_name='Nombre y Apellido del Conyuge';
+//Comprobaciones para la segunda seccion del formulario 
+if(!empty($formulario_a_and_b)){
     
-    $spouse_date_birth='Fecha de Nacimiento';
-    
-    $single='Soltero';
-    
-    $ex_spouse_name='Nombre y Apellido del Exconyuge';
-        
-    switch ($status) 
-    {
-    case 'casado':
-        //Declaramos Variables
-        $regimen = [
-            'communityP' => 'Gananciales',
-            'separationP' => 'Separacion de Bienes',
-        ];
-        $spouse_name;
-        
-        $spouse_date_birth;   
-        
-        echo "{$regimen['communityP']}.<br /> {$regimen['separationP']}.<br /> $spouse_name.<br /> $spouse_date_birth.<br />";
-        break;
-    
-    case 'pareja de hecho':   
-        $spouse_name;
-        
-        $spouse_date_birth;
-        
-        echo "$spouse_name.<br /> $spouse_date_birth.<br />";
-        break;
-    
-    case 'soltero':   
-        $single;
-        echo $single;
-        break;
-    
-    case 'viudo':   
-        $spouse_name;
-        
-        echo $spouse_name;
-        break;
-    
-    case 'divorciado':   
-        $ex_spouse_name;
-        
-        echo $ex_spouse_name;
-        break;
-    }
+        // DECODING OBJECTO TO PHP
+        if($formulario_b_dcd = json_decode($formulario_a_and_b, true)){
+               //var_dump($formulario_a_dcd);    
+               echo Helpers::Deceased_kinship($formulario_b_dcd);
+               
+               echo Helpers::Patrimonial_value($formulario_b_dcd);
+        }
+        else{
+            echo 'el objeto de la seccion B esta vacio o nulo';
+        }   
 }
 
-
-function Have_business ( $option , $self_employed )
-{   
-   switch ($option) 
+$formulario_b_and_c = '[
     {
-        case $option=='si' && ( $self_employed == 'autonomo individual' ) :
-            $self_employed_ind =$self_employed;
-            
-            $epigrafe = 'Epígrafe IAE'; 
-            
-            $desc_epigrafe = 'Descripción epígrafe';
-            
-            $trade_name = 'Nombre comercial';
-            
-            echo "$self_employed_ind.<br /> $epigrafe.<br /> $desc_epigrafe.<br /> $trade_name.<br />"; 
-            break;
-        
-        case $option=='si' && ( $self_employed == 'autonomo con sociedad' ) :   
-            $self_employed_soc = $self_employed;
-            
-            echo "$self_employed_soc.<br />";
-            break;
-        
-        default :
-            $option=false;
-            echo 'No.<br />';
-            break;
-    }
-}   
+      "step_a":{
+        "dni":"1234567-1",
+        "fecha_fallecimiento":"17-03-2014",
+        "nombre_apellido":"Pedro Perez",
+        "estado_civil":"pareja de hecho",
+        "domicilio":"pontevedra calle 18",
+        "negocio":"si",
+        "tipo_autonomo":"autonomo individual"
+       }
+    },
+    {
+      "step_b":{
+        "dni":"1234567-1",
+        "nombre_heredero":"Elonk Musk",
+        "parentesco_fallecido":"Hijo",
+        "patrimonio":400000
+       }
+    },
+    {
+      "step_c":{
+        "inmueble":[
+        {"name":"piso","bien":"bien ganancial"},
+        {"name":"casa","bien":"bien privativo"}
+        ],
+        "cuenta":[{name:"cuenta bancaria","bien":"bien ganancial", "pais":"España"}]
+       }
+    }]';
 
-
-
-//B) DATOS PERSONALES HEREDEROS
-
-function Deceased_kinship ( $option )
-{
+//Comprobaciones para la segunda seccion del formulario 
+if(!empty($formulario_b_and_c))
+    {
     
-    switch ($option)
-    {
-        case 'Conyuge' :   
-            $spouse = 'Conyuge';
-            echo $spouse;
-            break;
-        
-        case 'Pareja de Hecho' :   
-            $partner = 'Pareja de Hecho';
-            echo $partner;
-            break;
-        
-        case $option == 'Hijo' || $option == 'Hija' :   
-            $children = $option;
-            echo $children;
-            break;
-        
-        case $option =='Nieto' || $option=='Nieta' :   
-            $grandchild = $option;
-            echo $grandchild;
-            break;
-        
-        case $option == 'Padre' || $option == 'Madre' :   
-            $parent = $option;
-            echo $parent;
-            break;
-        
-        case $option == 'Abuelo' || $option == 'Abuela' :   
-            $grandparent = $option;
-            echo $grandparent;
-            break;
-        
-        case $option == 'Hermano' || $option == 'Hermana' :   
-            $brotherSister = $option;
-            echo $brotherSister;
-            break;
-        
-        case 'Sobrino por Consanguinidad':   
-            $nephewConsang = 'Sobrino por Consanguinidad';
-            echo $nephewConsang;
-            break;
-        
-        case 'Tio por Consanguinidad':   
-            $uncleConsang = 'Tio por Consanguinidad';
-            echo $uncleConsang;
-            break;
-        
-        case 'Primo por Consanguinidad':   
-            $cousinConsang = 'Primo por Consanguinidad';
-            echo $cousinConsang;
-            break;
-        
-        case 'Sin Parentesco':   
-            $nokinship = 'Sin Parentesco';
-            echo $cousinConsang;
-            break;
-        
-        default :
-            $kinship = 'Especificar Parentesco';
+        // DECODING OBJECTO TO PHP
+        if($formulario_c_dcd = json_decode($formulario_b_and_c, true)){
+            
+         echo Helpers::Property($formulario_c_dcd[2]["step_c"]["inmueble"]);
+         
+         echo Helpers::Bank_account_or_deposit($formulario_c_dcd[2]["step_c"]["cuenta"]);
+         
+         //            array_walk_recursive($option, function( $item,$key){
+//      
+//            echo "clave: $key y item: $item</br>";
+//            
+//                if($item=="inmueble")
+//                {
+//                    echo Helpers::Property($item);
+//                }
+////                else if($item=="cuenta bancaria"){
+////                    echo Helpers::Bank_account_or_deposit($formulario_c_dcd[2]["step_c"]["tipo"]);
+////              }
+//                    
+//             }); 
+              
+        }else{
+            echo 'el objeto de la seccion B esta vacio o nulo';
+        }   
     }
-}
 
 
-function Patrimonial_value ( $patrimonial )
-{   
-    if ( $patrimonial <= 402678.11 )
-    {
-        return "Entre 0 y 402.678,11 euros";
-    }
-    
-    if ( $patrimonial > 402678.11 && $patrimonial <= 2007380.43 )
-    {
-        return "De más de 402.678,12 euros hasta 2.007.380,43 euros";
-    }
-    
-    if ( $patrimonial > 2007380.43 && $patrimonial <= 4020770.98 )
-    {
-        return "De más de 2.007.380,43 euros hasta 4.020.770,98 euros";
-    }
-    
-    if ( $patrimonial > 4020770.98 )
-    {
-        return "De más de 4.020.770,98 euros";
-    }
-}
-
-
-//SECCION C) BIENES DE HERENCIA
-
+//Funcion para el controlador
 function Inheritance_assets($option){
     switch ($option){
         
@@ -579,7 +457,6 @@ function bank_account_or_deposit ( $assets , $country )
     echo "$bank_entity.<br /> $iban.<br /> $balance_date.<br /> $country.<br />";
 }
 
-bank_account_or_deposit('bien', 'francia');
 
 function Actions_or_part ( $quotation , $assets )
 {
@@ -622,7 +499,6 @@ function Actions_or_part ( $quotation , $assets )
     echo "$entity.<br /> $num_actions.<br /> $quotation.<br /> $assets.<br />";
 }
 
-Actions_or_part(true,'Bien Ganancial');
 
 function Bonds_or_obligations ( $assets , $bondsTrade )
 {
