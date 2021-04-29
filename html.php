@@ -27,6 +27,8 @@
                 <div>
                     <label for="spouseName">Nombre y Apellido:</label>
                     <input type="text" id="spouseName" name="married">
+                    <label for="spouseName">Nombre y Apellido:</label>
+                    <input type="text" id="spouse_date_birth" name="married">
                 </div>
             </div>
         </div>

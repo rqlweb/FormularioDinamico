@@ -8,34 +8,35 @@
 //$datosFallecido->showForm();
 
 //Objeto Json para seccion A datos personales
+//$data = json_decode(file_get_contents('php://input'), true);
 
 require 'helpers/Helpers.php';
 
-$formulario_a = '{
-    "dni":"1234567-1",
-    "fecha_fallecimiento":"17-03-2014",
-    "nombre_apellido":"Pedro Perez",
-    "estado_civil":"casado",
-    "regimen":"ganacial",
-    "domicilio":"pontevedra calle 18",
-    "negocio":"si",
-    "tipo_autonomo":"autonomo con sociedad"
-}';
+require_once 'views/datosFallecido.php';
 
-//Comprobaciones para el primera seccion del formulario 
-if(!empty($formulario_a)){
-    
-        // DECODING OBJECTO TO PHP
-        if($formulario_a_dcd = json_decode($formulario_a,true)){
-               //var_dump($formulario_a_dcd);    
-               echo Helpers::Civil_status($formulario_a_dcd);
-               
-               echo Helpers::Have_business($formulario_a_dcd);
-        }
-        else{
-            echo 'el objeto de la seccion A esta vacio o nulo';
-        }   
-}
+//$formulario_a = '{
+//    "dni":"1234567-1",
+//    "fecha_fallecimiento":"17-03-2014",
+//    "nombre_apellido":"Pedro Perez",
+//    "estado_civil":"casado",
+//    "regimen":"ganacial",
+//    "domicilio":"pontevedra calle 18",
+//    "negocio":"si",
+//    "tipo_autonomo":"autonomo con sociedad"
+//}';
+
+//Comprobaciones para el primera seccion del formulario los parametros
+$estadocivil=$_REQUEST['civilstatus'];
+$patrimonio=$_REQUEST['patrimonio'];
+
+if(!empty($estadocivil)){
+
+   echo Helpers::Process_Form($estadocivil)."</br>";
+                     
+}else{
+    echo 'el objeto de la seccion A esta vacio o nulo';
+}   
+
 
 $formulario_a_and_b = '[
     {
@@ -64,9 +65,9 @@ if(!empty($formulario_a_and_b)){
         // DECODING OBJECTO TO PHP
         if($formulario_b_dcd = json_decode($formulario_a_and_b, true)){
                //var_dump($formulario_a_dcd);    
-               echo Helpers::Deceased_kinship($formulario_b_dcd);
+               echo Helpers::Deceased_kinship($formulario_b_dcd)."</br>";
                
-               echo Helpers::Patrimonial_value($formulario_b_dcd);
+               echo Helpers::Patrimonial_value($formulario_b_dcd)."</br>";
         }
         else{
             echo 'el objeto de la seccion B esta vacio o nulo';
@@ -95,12 +96,45 @@ $formulario_b_and_c = '[
     },
     {
       "step_c":{
-        "inmueble":[
-        {"name":"piso","bien":"bien ganancial"},
-        {"name":"casa","bien":"bien privativo"}
-        ],
-        "cuenta":[{name:"cuenta bancaria","bien":"bien ganancial", "pais":"España"}]
-       }
+        "type_property":[
+                {
+                "type":"piso",
+                "direccion":"calle cero pontevedra",
+                "rfe_catastral":"1234567  AB1234A",
+                "bien":"bien ganancial",
+                "valor_total": 40000
+                },
+                {
+                "type":"oficina",
+                "direccion":"calle dos pontevedra",
+                "rfe_catastal":"1234567  AB1234A",
+                "valor_total": 300000,
+                "bien":"bien privativo",
+                "epigafe":"Seccion 3:022",
+                "desc_epig":"Bailarines"
+                }],
+        "cuenta":[{
+                "entidad":"Abanca",
+                "iban":"1234534242424",
+                "saldo":30000,
+                "bien":"bien ganancial",
+                "pais":"España"
+                }],
+        "acciones":[{
+                "entidad":"Bankia",
+                "num_acciones":200,
+                "bien":"bien ganancial",
+                "cotiza":"no",
+                "importe_pat":25000,
+                "audited":"si",
+                "valor_neto":18000,
+                "valor_nominal":20000,
+                "porcentaje":"30%",
+                "resultado_uno":1900,
+                "resultado_dos":2000,
+                "resultado_tres":4000,
+                "importe_neto":10000}]
+        }        
     }]';
 
 //Comprobaciones para la segunda seccion del formulario 
@@ -110,26 +144,30 @@ if(!empty($formulario_b_and_c))
         // DECODING OBJECTO TO PHP
         if($formulario_c_dcd = json_decode($formulario_b_and_c, true)){
             
-         echo Helpers::Property($formulario_c_dcd[2]["step_c"]["inmueble"]);
+            $property=$formulario_c_dcd[2]['step_c']['type_property'];
+            
+            
+            if(!empty($property))
+            {               
+                 echo Helpers::Property($formulario_c_dcd)."</br>";
+            }
+            
+            $bank=$formulario_c_dcd[2]['step_c']['cuenta'];
+        
+            if(!empty($bank))
+            {
+                echo Helpers::Bank_account_or_deposit($formulario_c_dcd)."</br>";
+            }
+            
+            $actions=$formulario_c_dcd[2]['step_c']['acciones'];
+            //var_dump($actions);
+            if(!empty($actions))
+            {
+                echo Helpers::Actions_or_part($formulario_c_dcd)."</br>";
+            }
          
-         echo Helpers::Bank_account_or_deposit($formulario_c_dcd[2]["step_c"]["cuenta"]);
-         
-         //            array_walk_recursive($option, function( $item,$key){
-//      
-//            echo "clave: $key y item: $item</br>";
-//            
-//                if($item=="inmueble")
-//                {
-//                    echo Helpers::Property($item);
-//                }
-////                else if($item=="cuenta bancaria"){
-////                    echo Helpers::Bank_account_or_deposit($formulario_c_dcd[2]["step_c"]["tipo"]);
-////              }
-//                    
-//             }); 
-              
         }else{
-            echo 'el objeto de la seccion B esta vacio o nulo';
+            echo 'el objeto de la seccion C esta vacio o nulo';
         }   
     }
 
@@ -140,323 +178,6 @@ function Inheritance_assets($option){
         
     }
 }
-
-
-function Property ( $option , $assets )
-{
-    //variables globales 
-    $direction = 'indicar direccion';
-    
-    $cadastral_reference = 'Referencia catastral';
-    
-    $value_entire_property;
-   
-    $construction_year = 'Año de construccion';
-    
-    $square_meter = 'indicar los metros cuadrados';
-    
-    $elevator = "Elevador";
-    
-    $num_parking_spaces = 'indicar numero de plazas';
-    
-    $meter_storage_room = 'metros del trastero';
-    
-    $access_road = 'via de acceso';
-    
-    $type_place = 'tipo de lugar';
-    
-    switch ( $option )
-    {
-        
-        case $option == 'piso' && $assets :
-            $direction;
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad del piso';
-            
-            if ( $assets == 'bien ganancial' )
-            {
-                    $assets_profit = 'bien ganancial';
-            } else {
-                    $assets_privative = 'bien privativo % de la propiedad';
-            }
-            
-            $construction_year;
-            
-            $square_meter;
-            
-            $elevator;
-            
-            $num_parking_spaces;
-            
-            $meter_storage_room;
-           
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $construction_year.<br /> $square_meter.<br /> $assets.<br />"
-                    . "$elevator.<br /> $num_parking_spaces.<br /> $meter_storage_room.<br />";   
-            
-            break;
-            
-        case 'plaza garaje'&& $assets :
-            $direction;
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad de la plaza de garaje';
-            
-            if ( $assets == 'bien ganancial' )
-            {
-                    $assets_profit = 'bien Ganancial';
-            } else {
-                    $assets_privative = 'bien privativo % de la propiedad';
-            }    
-            
-            $construction_year;
-            
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $assets.<br /> $construction_year.<br />";
-            
-            break;
-            
-        case 'trastero' && $assets:
-            $direction;
-            $cadastral_reference;
-            $value_entire_property = 'Valor de la totalidad del Trastero';
-            
-            if ( $assets == 'bien ganancial' )
-            {
-                    $assets_profit = 'bien ganancial';
-            } else {
-                    $assets_privative = 'Bien Privativo % de la propiedad';
-            }
-            
-            $construction_year;
-            
-            $square_meter;
-            
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $assets.<br /> $construction_year.<br /> $square_meter.<br />";
-            
-            break;
-        
-        case 'oficina' && $assets :
-            $direction;
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad de la oficina';
-            
-            if ( $assets == 'bien ganancial' )
-            {
-                    $assets_profit = 'gien ganancial';
-            } else {
-                    $assets_privative = 'bien privativo % de la propiedad';
-            }
-            
-            $construction_year;
-            
-            $square_meter;
-            
-            $elevator;
-            
-            $num_parking_spaces;
-            
-            $meter_storage_room;
-            
-            $store_epigraph_desc='preguntar sólo si en A/ escogió la opción de "autónomo empresario individual';
-            
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $construction_year.<br /> $square_meter.<br /> $assets.<br /> "
-                    . "$elevator.<br /> $num_parking_spaces.<br /> $meter_storage_room.<br /> $store_epigraph_desc.<br />";   
-            
-            break;
-            
-        case 'local comercial' && $assets :
-            $direction;
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad del local comercial';
-            
-            if ( $assets == 'Bien Ganancial' )
-            {
-                    $assets_profit = 'bien ganancial';
-            } else {
-                    $assets_privative = 'bien privativo % de la propiedad';
-            }
-            
-            $construction_year;
-            
-            $square_meter;
-            
-            $num_parking_spaces;
-            
-            $meter_storage_room;
-            
-            $store_epigraph_desc = 'preguntar sólo si en A/ escogió la opción de "autónomo empresario individual';
-            
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br />  $assets.<br /> $construction_year.<br />"
-                    . "> $square_meter.<br /> $num_parking_spaces.<br /> $meter_storage_room.<br /> $store_epigraph_desc.<br />";   
-            
-            break;
-            
-        case $option == 'casa'|| $option == 'chalet' :
-            $direction;
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad del casa/chalet';
-            
-            if ( $assets == 'Bien Ganancial' )
-            {
-                    $assets_profit = 'bien ganancial';
-            } else {
-                    $assets_privative = 'bien privativo % de la propiedad';
-            }
-                
-            $construction_year;
-            
-            if($access_road == 'Carretera Princical' || $access_road == 'Via Afaltada' || $access_road == 'Camino sin Afaltar')
-            {
-                    $roads = $access_road;
-            } else { 
-                    $roads = 'sin indicar';
-            }
-            
-            $square_meter = 'colocar tabla o desplegable para metros por plantas';
-            
-            $meter_terrain = 'metros de finca/terreno';
-            
-            $meter_annex = 'metros de anexos tambien indicar los metros de uso por tabla o preguntas';
-           
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $construction_year.<br /> $square_meter.<br /> $assets.<br />"
-                    . "$roads.<br /> $square_meter.<br /> $meter_terrain.<br /> $meter_annex.<br />";   
-           
-            break;
-            
-        case 'finca rustica' :
-            $province = 'Provincia';
-             
-            $city_hall = 'Ayuntamiento'; 
-            
-            $place = 'Lugar'; 
-            
-            $land_name = 'nombre de la finca si la tiene es opcional'; 
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad de la finca rustica';
-              
-            if ( $assets == 'Bien Ganancial' )
-            {
-                    $assets_profit = 'bien ganancial';
-            } else {
-                    $assets_privative = 'Bien Privativo % de la propiedad';
-            }
-            
-            $square_meter;
-            
-            if ( $type_place == 'prado' || $type_place == 'huerta' || $type_place == 'viña' || $type_place == 'monte' )
-            {
-                $type=$type_place;
-            }
-            
-            $store_epigraph_desc = 'preguntar sólo si en A/ escogió la opción de "autónomo empresario individual';
-            
-            echo "$province.<br /> $city_hall.<br /> $place.<br />$land_name.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $assets.<br />"
-                    ."$type.<br /> $square_meter.<br /> $store_epigraph_desc.<br />";   
-            
-            break;  
-            
-        case $option == 'terreno Urbano' || $option == 'terreno Urbanizable' :
-            $province = 'Provincia';
-            
-            $city_hall = 'Ayuntamiento'; 
-            
-            $place = 'Lugar'; 
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad del terreno';
-            
-            if ( $assets == 'bien ganancial' )
-            {
-                    $assets_profit = 'bien ganancial';
-            } else {
-                    $assets_privative = 'bien privativo % de la propiedad';
-            }
-            
-            $square_meter;
-            
-            $store_epigraph_desc='preguntar sólo si en A/ escogió la opción de "autónomo empresario individual';
-            
-            echo "$province.<br /> $city_hall.<br /> $place.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $assets.<br />"
-                    ."$square_meter.<br /> $store_epigraph_desc.<br />"; 
-            
-            break; 
-            
-        case 'construccion industrial' :
-            $direction; 
-            
-            $cadastral_reference;
-            
-            $value_entire_property = 'Valor de la totalidad de la nave';
-            
-            if ( $assets == 'Bien Ganancial' )
-            {
-                    $assets_profit = 'Bien Ganancial';
-            } else {
-                    $assets_privative = 'Bien Privativo % de la propiedad';
-            }
-            
-            $construction_year;
-            
-            if ( $access_road == 'Carretera Princical' || $access_road == 'Via Afaltada' || $access_road == 'Camino sin Afaltar' )
-            {
-                    $roads = $access_road;
-            }
-                
-            $square_meter;
-            
-            $meter_terrain = 'metros de finca/terreno';
-            
-            $meter_annex = 'metros de anexos tambien indicar los metros de uso por tabla o preguntas';
-            
-            $store_epigraph_desc = 'preguntar sólo si en A/ escogió la opción de "autónomo empresario individual';
-           
-            echo "$direction.<br /> $cadastral_reference.<br /> $value_entire_property.<br /> $assets.<br /> $construction_year.<br /> $square_meter.<br />"
-                    . "$meter_terrain.<br /> $meter_annex.<br /> $store_epigraph_desc.<br />";   
-            
-            break; 
-            
-        default :
-            $option = false;
-      
-            echo 'no a selecionado nada';    
-    }
-}
-
-
-
-function bank_account_or_deposit ( $assets , $country )
-{
-    $bank_entity = 'Entidad Bancaria';
-    
-    $iban = 'iban';
-    
-    $balance_date = 'Saldo a fecha fallecimiento';
-    
-    if ( $assets == 'bien ganancial' )
-    {
-            $assets_profit = 'bien ganancial';
-            echo "$assets_profit.<br />";
-    } else {
-            $assets_privative = 'bien privativo % de la propiedad';
-            echo "$assets_privative.<br />";
-    }
-    
-    $country = 'pais a los efectos de que si son c/c o imposiciones en la zona sepa se declaran en el apartado C y si son de fuera se declaran en el G'; 
-    
-    echo "$bank_entity.<br /> $iban.<br /> $balance_date.<br /> $country.<br />";
-}
-
 
 function Actions_or_part ( $quotation , $assets )
 {
