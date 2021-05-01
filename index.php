@@ -14,6 +14,44 @@ require 'helpers/Helpers.php';
 
 require_once 'views/datosFallecido.php';
 
+
+$helper = new Helpers();
+
+$campo_form = $helper->Enrutador_Get();
+
+//var_dump($campo_form);
+
+$status=$campo_form[0]->template;
+
+$business=$campo_form[1]->business;
+
+//var_dump($business);
+
+ 
+
+if($campo_form[0]->ok == true || $campo_form[1]->ok == true || $campo_form[2]->ok == true )
+{
+    $type=$campo_form[2]->type;
+    
+    $template_civil = $helper->Get_Template($status);
+    var_dump($template_civil);
+              die();
+    
+    $template_business = $helper->Get_Template($business);
+    
+    $template_employed= $helper->Get_Template($type);
+
+    var_dump($template_civil);
+    var_dump($template_business);
+    var_dump($template_employed);
+    
+}
+   
+         
+    
+
+
+
 //$formulario_a = '{
 //    "dni":"1234567-1",
 //    "fecha_fallecimiento":"17-03-2014",
@@ -26,158 +64,148 @@ require_once 'views/datosFallecido.php';
 //}';
 
 //Comprobaciones para el primera seccion del formulario los parametros
-$estadocivil=$_REQUEST['civilstatus'];
-$patrimonio=$_REQUEST['patrimonio'];
-
-if(!empty($estadocivil)){
-
-   echo Helpers::Process_Form($estadocivil)."</br>";
-                     
-}else{
-    echo 'el objeto de la seccion A esta vacio o nulo';
-}   
-
-
-$formulario_a_and_b = '[
-    {
-      "step_a":{
-        "dni":"1234567-1",
-        "fecha_fallecimiento":"17-03-2014",
-        "nombre_apellido":"Pedro Perez",
-        "estado_civil":"pareja de hecho",
-        "domicilio":"pontevedra calle 18",
-        "negocio":"si",
-        "tipo_autonomo":"autonomo individual"
-       }
-    },
-    {
-      "step_b":{
-       "dni":"1234567-1",
-       "nombre_heredero":"Elonk Musk",
-       "parentesco_fallecido":"Hijo",
-       "patrimonio":400000
-       }
-    }]';
-
-//Comprobaciones para la segunda seccion del formulario 
-if(!empty($formulario_a_and_b)){
-    
-        // DECODING OBJECTO TO PHP
-        if($formulario_b_dcd = json_decode($formulario_a_and_b, true)){
-               //var_dump($formulario_a_dcd);    
-               echo Helpers::Deceased_kinship($formulario_b_dcd)."</br>";
-               
-               echo Helpers::Patrimonial_value($formulario_b_dcd)."</br>";
-        }
-        else{
-            echo 'el objeto de la seccion B esta vacio o nulo';
-        }   
-}
-
-$formulario_b_and_c = '[
-    {
-      "step_a":{
-        "dni":"1234567-1",
-        "fecha_fallecimiento":"17-03-2014",
-        "nombre_apellido":"Pedro Perez",
-        "estado_civil":"pareja de hecho",
-        "domicilio":"pontevedra calle 18",
-        "negocio":"si",
-        "tipo_autonomo":"autonomo individual"
-       }
-    },
-    {
-      "step_b":{
-        "dni":"1234567-1",
-        "nombre_heredero":"Elonk Musk",
-        "parentesco_fallecido":"Hijo",
-        "patrimonio":400000
-       }
-    },
-    {
-      "step_c":{
-        "type_property":[
-                {
-                "type":"piso",
-                "direccion":"calle cero pontevedra",
-                "rfe_catastral":"1234567  AB1234A",
-                "bien":"bien ganancial",
-                "valor_total": 40000
-                },
-                {
-                "type":"oficina",
-                "direccion":"calle dos pontevedra",
-                "rfe_catastal":"1234567  AB1234A",
-                "valor_total": 300000,
-                "bien":"bien privativo",
-                "epigafe":"Seccion 3:022",
-                "desc_epig":"Bailarines"
-                }],
-        "cuenta":[{
-                "entidad":"Abanca",
-                "iban":"1234534242424",
-                "saldo":30000,
-                "bien":"bien ganancial",
-                "pais":"España"
-                }],
-        "acciones":[{
-                "entidad":"Bankia",
-                "num_acciones":200,
-                "bien":"bien ganancial",
-                "cotiza":"no",
-                "importe_pat":25000,
-                "audited":"si",
-                "valor_neto":18000,
-                "valor_nominal":20000,
-                "porcentaje":"30%",
-                "resultado_uno":1900,
-                "resultado_dos":2000,
-                "resultado_tres":4000,
-                "importe_neto":10000}]
-        }        
-    }]';
-
-//Comprobaciones para la segunda seccion del formulario 
-if(!empty($formulario_b_and_c))
-    {
-    
-        // DECODING OBJECTO TO PHP
-        if($formulario_c_dcd = json_decode($formulario_b_and_c, true)){
-            
-            $property=$formulario_c_dcd[2]['step_c']['type_property'];
-            
-            
-            if(!empty($property))
-            {               
-                 echo Helpers::Property($formulario_c_dcd)."</br>";
-            }
-            
-            $bank=$formulario_c_dcd[2]['step_c']['cuenta'];
-        
-            if(!empty($bank))
-            {
-                echo Helpers::Bank_account_or_deposit($formulario_c_dcd)."</br>";
-            }
-            
-            $actions=$formulario_c_dcd[2]['step_c']['acciones'];
-            //var_dump($actions);
-            if(!empty($actions))
-            {
-                echo Helpers::Actions_or_part($formulario_c_dcd)."</br>";
-            }
-         
-        }else{
-            echo 'el objeto de la seccion C esta vacio o nulo';
-        }   
-    }
-
-
-//Funcion para el controlador
-function Inheritance_assets($option){
-    switch ($option){
-        
-    }
-}
+//
+//if(!empty($estadocivil)){
+//
+//   echo Helpers::Process_Form($estadocivil)."</br>";
+//                     
+//}else{
+//    echo 'el objeto de la seccion A esta vacio o nulo';
+//}   
+//
+//
+//$formulario_a_and_b = '[
+//    {
+//      "step_a":{
+//        "dni":"1234567-1",
+//        "fecha_fallecimiento":"17-03-2014",
+//        "nombre_apellido":"Pedro Perez",
+//        "estado_civil":"pareja de hecho",
+//        "domicilio":"pontevedra calle 18",
+//        "negocio":"si",
+//        "tipo_autonomo":"autonomo individual"
+//       }
+//    },
+//    {
+//      "step_b":{
+//       "dni":"1234567-1",
+//       "nombre_heredero":"Elonk Musk",
+//       "parentesco_fallecido":"Hijo",
+//       "patrimonio":400000
+//       }
+//    }]';
+//
+////Comprobaciones para la segunda seccion del formulario 
+//if(!empty($formulario_a_and_b)){
+//    
+//        // DECODING OBJECTO TO PHP
+//        if($formulario_b_dcd = json_decode($formulario_a_and_b, true)){
+//               //var_dump($formulario_a_dcd);    
+//               echo Helpers::Deceased_kinship($formulario_b_dcd)."</br>";
+//               
+//               echo Helpers::Patrimonial_value($formulario_b_dcd)."</br>";
+//        }
+//        else{
+//            echo 'el objeto de la seccion B esta vacio o nulo';
+//        }   
+//}
+//
+//$formulario_b_and_c = '[
+//    {
+//      "step_a":{
+//        "dni":"1234567-1",
+//        "fecha_fallecimiento":"17-03-2014",
+//        "nombre_apellido":"Pedro Perez",
+//        "estado_civil":"pareja de hecho",
+//        "domicilio":"pontevedra calle 18",
+//        "negocio":"si",
+//        "tipo_autonomo":"autonomo individual"
+//       }
+//    },
+//    {
+//      "step_b":{
+//        "dni":"1234567-1",
+//        "nombre_heredero":"Elonk Musk",
+//        "parentesco_fallecido":"Hijo",
+//        "patrimonio":400000
+//       }
+//    },
+//    {
+//      "step_c":{
+//        "type_property":[
+//                {
+//                "type":"piso",
+//                "direccion":"calle cero pontevedra",
+//                "rfe_catastral":"1234567  AB1234A",
+//                "bien":"bien ganancial",
+//                "valor_total": 40000
+//                },
+//                {
+//                "type":"oficina",
+//                "direccion":"calle dos pontevedra",
+//                "rfe_catastal":"1234567  AB1234A",
+//                "valor_total": 300000,
+//                "bien":"bien privativo",
+//                "epigafe":"Seccion 3:022",
+//                "desc_epig":"Bailarines"
+//                }],
+//        "cuenta":[{
+//                "entidad":"Abanca",
+//                "iban":"1234534242424",
+//                "saldo":30000,
+//                "bien":"bien ganancial",
+//                "pais":"España"
+//                }],
+//        "acciones":[{
+//                "entidad":"Bankia",
+//                "num_acciones":200,
+//                "bien":"bien ganancial",
+//                "cotiza":"no",
+//                "importe_pat":25000,
+//                "audited":"si",
+//                "valor_neto":18000,
+//                "valor_nominal":20000,
+//                "porcentaje":"30%",
+//                "resultado_uno":1900,
+//                "resultado_dos":2000,
+//                "resultado_tres":4000,
+//                "importe_neto":10000}]
+//        }        
+//    }]';
+//
+////Comprobaciones para la segunda seccion del formulario 
+//if(!empty($formulario_b_and_c))
+//    {
+//    
+//        // DECODING OBJECTO TO PHP
+//        if($formulario_c_dcd = json_decode($formulario_b_and_c, true)){
+//            
+//            $property=$formulario_c_dcd[2]['step_c']['type_property'];
+//            
+//            
+//            if(!empty($property))
+//            {               
+//                 echo Helpers::Property($formulario_c_dcd)."</br>";
+//            }
+//            
+//            $bank=$formulario_c_dcd[2]['step_c']['cuenta'];
+//        
+//            if(!empty($bank))
+//            {
+//                echo Helpers::Bank_account_or_deposit($formulario_c_dcd)."</br>";
+//            }
+//            
+//            $actions=$formulario_c_dcd[2]['step_c']['acciones'];
+//            //var_dump($actions);
+//            if(!empty($actions))
+//            {
+//                echo Helpers::Actions_or_part($formulario_c_dcd)."</br>";
+//            }
+//         
+//        }else{
+//            echo 'el objeto de la seccion C esta vacio o nulo';
+//        }   
+//    }
 
 function Actions_or_part ( $quotation , $assets )
 {

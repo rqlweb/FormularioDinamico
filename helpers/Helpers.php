@@ -1,9 +1,10 @@
 <?php
 
+  
+
+  
 class Helpers {
-    
-    const CASADO= array('regimen','spouse_name','spouse_date_birth');
-    
+  
     const PISO=0;
     const PLAZA_GARAJE=3;
     const TRASTERO=2;
@@ -19,121 +20,126 @@ class Helpers {
     //comprobacion ternaria con doble condicion
     //(!empty($type) ? $type :($type='autonomo individual' ? $type : false )
     //funcion para el enrutador 
-    static function Process_Form($status){
-        $casado=$this->Civil_status($status);
-        var_dump($casado);  
+    static function Enrutador_Get() {
+        
+        if(!empty($_REQUEST))
+        {
+            
+            // SECCION A) DATOS PERSONALES DEL FALLECIDO:
+            $status = $_REQUEST["civilstatus"];
+            
+            $civil=self::Civil_status($status);
+            
+            $have=$_REQUEST["havebusiness"];
+            
+            $business= self::Have_business($have);
+
+            $type = $_REQUEST["type_employed"];
+                
+            $self_employed= self::Type_Self_Employed($type);
+                  
+            $seccion_a=array($civil,$business, $self_employed);
+             
+            //var_dump($seccion_a);
+            return $seccion_a;
+        }else{
+            echo "<h1>No existen parametros</h1>";
+        }
+ 
     }
+    
+    static function Get_Template( $result )
+    {
+       
+        $form_select = $result;
+
+        $object = (object)null;
+        
+        $object->ok=true;
+        
+        $template = file_get_contents("./templates/$form_select.html");
+
+        $object->data = $template;
+        
+        return $object;
+    }
+
+
+
     // SECCION A) DATOS PERSONALES DEL FALLECIDO:
     static function Civil_status ( $object ){
-        
-       $contador_error=0;
-        //revisar el envio de un objeto que fue convertido de JSON
-       //$form = json_decode($objet,true);
-       //var_dump($object);
-       //$status=$object["estado_civil"];
-       //var_dump($status);
-       //$regimen=$object["regimen"];
 
-            if( !empty($object))
-            {
-                switch ($object) 
+        $result = (object)null;
+        
+                switch ($object)    
                 {
                     case 'casado':
-                        //if ( !empty( $regimen) ? $regimen : false )
-                        //{  
-//                            $regimen;
-//                            $spouse_name= 'Nombre y Apellido del Conyuge';  
-//                            $spouse_date_birth ='Fecha de Nacimiento';    
-                            
-                            return self::CASADO;
-                        //}
-                        //else
-                        //{
-                            //$contador_error++;
-                            // echo "debe estar elegido el regimen $contador_error";
-                        //}
+                        $result->ok = true;
+                        $result->template='married';
                         break; 
 
-                    case 'pareja de hecho':                           
-                        $spouse_name = 'Nombre y Apellido del Conyuge';
-                        $spouse_date_birth ='Fecha de Nacimiento';                        
-                        echo "$spouse_name.</br> $spouse_date_birth.</br>";
+                    case 'pareja de hecho': 
+                        $result->ok = true;
+                        $result->template='partner';
+                       
                         break;
 
-                    case 'soltero':                           
-                        $single = 'soltero';
-                        echo $single;
+                    case 'soltero':
+                        $result->ok = false;
                         break;
 
-                    case 'viudo':                          
-                        $spouse_name = 'Nombre y Apellido del Conyuge';
-                        echo $spouse_name;
+                    case 'viudo': 
+                        $result->ok = true;
+                        $result->template='widower';
                         break;
 
-                    case 'divorciado':   
-                        $ex_spouse_name = 'Nombre y Apellido del Ex-Conyuge';
-                        echo $ex_spouse_name;
-                        break;
-                    
-                    default :
-                        $contador_error++;
-                        echo'no coincide con ninguna opcion'."</br>".$contador_error;
-                        break;
+                    case 'divorciado':
+                        $result->ok = true;
+                        $result->template='divorced';
+                        break;                   
                 }
-            }else
-            {
-                $contador_error++;
-                echo 'estatus vacio </br>'.$contador_error;
-            }
+                
+        return $result;
     }
     
     static function Have_business ( $object )
     {   
-        //Para registrar los errores en la comprobacion
-        $contador_error=0;
         
-        //Campos a comprobar 
-        $business=$object["negocio"];
-        $type=$object["tipo_autonomo"];
+        $result = (object)null;
         
-        if((!empty($business)) ? $business : false)
-        {
-            switch ($business) 
-            {
-                case $business && ((!empty($type)) ? $type == 'autonomo individual' : false ) :                  
-                    $self_employed_ind =$type;
-                    $epigrafe = 'Epígrafe IAE'; 
-                    $desc_epigrafe = 'Descripción epígrafe';
-                    $trade_name = 'Nombre comercial';
-                    echo "$self_employed_ind.</br> $epigrafe.</br> $desc_epigrafe.</br> $trade_name.</br>"; 
-                    break;
-
-                case $business && ((!empty($type)) ? $type == 'autonomo con sociedad' : false ) :   
-                    $self_employed_soc = $type;
-                    echo "$self_employed_soc.</br>";
-                    break;
-
-                default :
-                    $business='NO';
-                    echo "$business.</br>";
-                    break;
-            }
+        if($object=='Si')
+        {     
+            $result->ok=true;
+            $result->business='business';
+       
         }else{
-            $contador_error++;
-            echo'no se selecciono ninguna opcion'."</br>".$contador_error;          
+              $result->ok=false;
         }
+        
+      return $result;
+      
     }  
     
-    
+    static function Type_Self_Employed ( $object )
+    {         
+            switch ($object) 
+            {
+                case 'Autónomo individual' :
+                    $result->ok = true;
+                    $result->type='type-self-employed';
+                    break;
+
+                case 'Autónomo con sociedad' : 
+                    $result->ok = false;
+                    break;
+            }
+    }
+
     //B) DATOS PERSONALES HEREDEROS
     
-    //Funcion para el parentesco con el fallecido
     static function Deceased_kinship ( $object )
     {
-        //Para registrar los errores en la comprobacion
-        $contador_error=0;
-        
-        //var_dump($form);
+               //var_dump($form);
         $parentesco= $object[1]["step_b"]["parentesco_fallecido"]; 
         
         if( !empty($parentesco))
